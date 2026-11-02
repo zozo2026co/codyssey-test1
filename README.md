@@ -1261,3 +1261,42 @@ origin  https://github.com/zozo2026co/codyssey-test1.git (push)
 `fetch`와 `push` 주소가 모두 과제용 GitHub 저장소를 가리키고 있음을 확인했습니다.
 
 또한 `git push` 실행 결과에서 `main -> main`이 표시되었으며, `git status -sb` 명령어로 로컬 브랜치와 원격 브랜치의 동기화 상태도 확인했습니다.
+
+## 22. HTTP 응답 확인 — AI 사전평가 보완
+
+AI 사전평가에서 브라우저 접속 스크린샷은 인정되었지만, 명령어를 이용한 HTTP 응답 확인 결과가 부족하다는 피드백을 받았습니다.
+
+이에 따라 PowerShell에서 `curl.exe`를 이용해 직접 제작한 NGINX 웹 서버의 응답을 확인했습니다.
+
+### 22.1. 실행 명령어
+
+```powershell
+curl.exe -I http://localhost:8080
+```
+
+`-I` 옵션은 HTTP HEAD 요청을 보내 응답 헤더를 확인하는 데 사용합니다.
+
+### 22.2. 실제 터미널 출력
+
+```text
+HTTP/1.1 200 OK
+Server: nginx/1.31.8
+Date: Mon, 02 Nov 2026 05:38:29 GMT
+Content-Type: text/html
+Content-Length: 250
+Last-Modified: Mon, 02 Nov 2026 02:12:12 GMT
+Connection: keep-alive
+ETag: "6ae7f17c-fa"
+Accept-Ranges: bytes
+```
+
+### 22.3. 확인 결과
+
+- **`HTTP/1.1 200 OK`**: 웹 서버가 HTTP 요청을 성공적으로 처리했습니다.
+- **`Server: nginx/1.31.8`**: NGINX 웹 서버에서 응답했습니다.
+- **`Content-Type: text/html`**: HTML 문서가 제공되고 있음을 확인했습니다.
+- **`Content-Length: 250`**: 응답 헤더에 표시된 HTML 문서의 크기는 250바이트입니다.
+
+앞서 브라우저에서 `http://localhost:8080`으로 접속하여 웹페이지가 표시되는 것을 확인했고, 이번에는 터미널에서도 HTTP 응답이 정상적으로 반환되는 것을 검증했습니다.
+
+이를 통해 웹페이지의 동작 여부를 브라우저뿐 아니라 명령어로도 확인하는 방법을 익혔습니다.
