@@ -497,3 +497,47 @@ docker ps --filter "name=zozo-ubuntu"
 - **docker attach:** 컨테이너에서 이미 실행 중인 주 프로세스의 입출력에 연결합니다.
 
 두 명령어 모두 직접 실행해 보았고, 연결 방식에 차이가 있다는 것을 확인했습니다.
+
+## 10. GitHub 및 VS Code 연동 확인
+
+이번 과제에서 작성한 README와 실습 파일, 증거 스크린샷을 GitHub 저장소에 업로드했습니다.
+
+VS Code에서 GitHub 계정의 로그인 상태를 확인하고, Source Control 화면에서 현재 브랜치와 커밋 기록을 확인했습니다.
+
+### 10.1. GitHub 업로드
+
+다음 명령어로 실습 파일을 Git에 등록하고 GitHub에 업로드했습니다.
+
+```powershell
+git add README.md bind-test evidence file-practice my-web
+git commit -m "Complete Codyssey Mission 1 development environment practice"
+git push -u origin main
+```
+
+이후 Docker attach와 exec 실습 결과도 README에 추가하고 다시 커밋했습니다.
+
+```powershell
+git add README.md
+git commit -m "Document Docker attach and exec practice"
+git push
+```
+
+### 10.2. 동기화 확인
+
+```powershell
+git status -sb
+```
+
+실제 확인 결과:
+
+```text
+## main...origin/main
+```
+
+로컬 저장소와 GitHub의 커밋이 동기화된 것을 확인했습니다.
+
+### 10.3. VS Code 연동 증거
+
+![VS Code Git 연동 및 동기화 화면](evidence/vscode_git_sync.png)
+
+이번 실습을 통해 직접 작성한 파일을 Git에 기록하고 GitHub에 업로드하는 과정을 경험했습니다.
