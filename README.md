@@ -541,3 +541,723 @@ git status -sb
 ![VS Code Git 연동 및 동기화 화면](evidence/vscode_git_sync.png)
 
 이번 실습을 통해 직접 작성한 파일을 Git에 기록하고 GitHub에 업로드하는 과정을 경험했습니다.
+
+## 11. PowerShell 파일 및 디렉터리 관리 실습
+
+이번 실습에서는 PowerShell을 이용해 폴더와 파일을 생성하고, 내용을 확인하거나 복사·이동·이름 변경·삭제하는 작업을 진행했습니다.
+
+### 11.1. 현재 경로 및 숨김 파일 확인
+
+```powershell
+Get-Location
+Get-ChildItem -Force
+```
+
+실제 확인한 현재 경로는 다음과 같습니다.
+
+```text
+C:\Users\Public\codyssey-test1\repo
+```
+
+`Get-ChildItem -Force` 명령어를 실행했을 때 `.git` 숨김 폴더와 `README.md`, `my-web`, `evidence`, `bind-test` 등의 항목을 확인했습니다.
+
+`-Force` 옵션을 사용하면 일반 목록에 표시되지 않는 숨김 파일과 폴더도 확인할 수 있습니다.
+
+### 11.2. 파일 생성 및 내용 확인
+
+```powershell
+New-Item -ItemType Directory -Path .\file-practice
+Set-Content -Path .\file-practice\original.txt -Value "Codyssey file management practice"
+Get-Content .\file-practice\original.txt
+```
+
+실제 출력 결과:
+
+```text
+Codyssey file management practice
+```
+
+### 11.3. 파일 복사와 이름 변경
+
+```powershell
+Copy-Item .\file-practice\original.txt .\file-practice\copy.txt
+Get-ChildItem .\file-practice
+```
+
+실제 파일 목록에서 `copy.txt`와 `original.txt`가 각각 35바이트로 표시되었습니다.
+
+이후 다음 명령어로 복사본의 이름을 변경했습니다.
+
+```powershell
+Rename-Item .\file-practice\copy.txt renamed.txt
+Get-ChildItem .\file-practice
+```
+
+확인 결과 `copy.txt`가 사라지고 `renamed.txt`가 표시되었습니다.
+
+### 11.4. 파일 이동
+
+```powershell
+New-Item -ItemType Directory -Path .\file-practice\moved-files
+Move-Item .\file-practice\renamed.txt .\file-practice\moved-files\
+Get-ChildItem .\file-practice\moved-files
+```
+
+실제 확인한 출력:
+
+```text
+디렉터리: C:\Users\Public\codyssey-test1\repo\file-practice\moved-files
+
+Mode                 Length Name
+----                 ------ ----
+-a----                   35 renamed.txt
+```
+
+이후 원래 폴더에서 `Get-ChildItem .\file-practice`를 실행했을 때 `moved-files`와 `original.txt`만 표시되었습니다.
+
+이를 통해 파일이 기존 위치에서 새 폴더로 이동되었음을 확인했습니다.
+
+### 11.5. 파일 삭제
+
+```powershell
+Remove-Item .\file-practice\moved-files\renamed.txt
+Get-ChildItem .\file-practice\moved-files
+```
+
+삭제 후 `moved-files` 폴더를 조회했을 때 파일 목록이 출력되지 않았습니다.
+
+이번 실습으로 파일을 관리할 때 사용하는 기본 PowerShell 명령어를 직접 확인할 수 있었습니다.
+
+---
+
+## 12. Docker 이미지와 컨테이너의 차이
+
+Docker를 처음 사용할 때는 이미지와 컨테이너의 차이가 헷갈렸습니다. 직접 이미지를 만들고 컨테이너를 실행하면서 두 개념을 구분할 수 있었습니다.
+
+| 구분 | Docker 이미지(Image) | Docker 컨테이너(Container) |
+|---|---|---|
+| 개념 | 프로그램 실행에 필요한 파일과 설정을 묶은 실행 기반 | 이미지를 바탕으로 생성한 실행 환경 |
+| 생성 | `docker build`, `docker pull` | `docker run`, `docker create` |
+| 실행 상태 | 자체적으로 실행되지 않음 | 실행·중지·재시작 가능 |
+| 삭제 | `docker rmi` | `docker rm` |
+| 이번 실습 예시 | `zozo-web:v1`, `zozo-web:v2` | `zozo-web-8080`, `zozo-web-8081`, `zozo-web-8082` |
+
+### 12.1. 이미지 제작
+
+```powershell
+docker build -t zozo-web:v1 .\my-web
+```
+
+Dockerfile과 HTML 파일을 바탕으로 `zozo-web:v1` 이미지를 만들었습니다.
+
+### 12.2. 이미지로 컨테이너 생성
+
+```powershell
+docker run -d --name zozo-web-8080 -p 8080:80 zozo-web:v1
+docker run -d --name zozo-web-8081 -p 8081:80 zozo-web:v1
+```
+
+같은 이미지로 이름과 호스트 포트가 서로 다른 두 컨테이너를 실행했습니다.
+
+### 12.3. 컨테이너 중지
+
+```powershell
+docker stop zozo-web-8081
+docker inspect --format '{{.State.Status}}' zozo-web-8081
+```
+
+실제 상태 확인 결과:
+
+```text
+exited
+```
+
+**정리하면 이미지는 실행에 필요한 기반이고, 컨테이너는 그 이미지를 실제 실행하는 환경입니다.**
+
+컨테이너를 삭제하더라도 이미지 자체는 별도로 관리됩니다. 다만 컨테이너 내부에만 저장한 데이터는 삭제 시 사라질 수 있으므로, 유지해야 하는 데이터는 Bind Mount나 Volume에 저장해야 합니다.
+
+---
+
+## 13. Docker 네트워크와 포트 연결 이해하기
+
+### 13.1. 컨테이너의 네트워크 공간
+
+Docker 컨테이너는 일반적으로 호스트와 구분된 네트워크 환경에서 실행됩니다.
+
+Linux의 **네트워크 네임스페이스(Network Namespace)**는 프로세스가 사용하는 네트워크 인터페이스, IP 주소, 라우팅 정보 등을 분리하는 기능입니다.
+
+Docker는 이러한 기능을 이용해 컨테이너에 별도의 네트워크 환경을 제공할 수 있습니다.
+
+따라서 컨테이너 안에서 웹 서버가 실행 중이더라도, Windows 브라우저에서 해당 서버에 접근하려면 적절한 네트워크 연결 설정이 필요합니다.
+
+### 13.2. 포트 매핑
+
+실습에서 사용한 명령어는 다음과 같습니다.
+
+```powershell
+docker run -d --name zozo-web-8080 -p 8080:80 zozo-web:v1
+```
+
+`-p 8080:80`의 의미는 다음과 같습니다.
+
+- `8080`: Windows PC에서 접속할 호스트 포트
+- `80`: Docker 컨테이너 내부에서 NGINX가 사용하는 포트
+
+브라우저가 `http://localhost:8080`으로 접속하면 Docker의 포트 게시 설정을 통해 컨테이너 내부의 80번 포트로 요청이 전달됩니다.
+
+실제로 8080번과 8081번 포트에서 웹페이지가 정상적으로 열리는 것을 확인했습니다.
+
+![8080 포트 웹페이지](evidence/docker_web_8080.png)
+
+![8081 포트 웹페이지](evidence/docker_web_8081.png)
+
+### 13.3. HTTP 응답 확인
+
+브라우저 접속뿐 아니라 웹 서버 로그에서도 응답 상태를 확인했습니다.
+
+```powershell
+docker logs zozo-web-8080
+```
+
+실제 확인된 로그:
+
+```text
+"GET / HTTP/1.1" 200 250
+```
+
+`200`은 요청이 성공했다는 HTTP 상태 코드입니다.
+
+추가로 HTTP 응답을 직접 확인할 때는 PowerShell에서 다음 명령어를 사용할 수 있습니다.
+
+```powershell
+curl.exe -I http://localhost:8080
+```
+
+이 명령어는 HTTP 응답 헤더를 확인하는 방법입니다. README에 작성한 시점에는 해당 명령어의 실제 출력 결과를 별도로 확보하지 않았으므로, 실행 결과는 기록하지 않았습니다.
+
+---
+
+## 14. Docker 포트 충돌 확인 및 해결 방법
+
+웹 서버를 실행할 때는 호스트 포트가 이미 사용 중이면 포트 연결에 실패할 수 있습니다.
+
+이번 실습에서는 8080, 8081, 8082 포트를 각각 구분하여 사용했습니다. 실제 포트 충돌 오류가 발생한 것은 아니지만, 문제가 발생했을 때 확인할 수 있는 절차를 정리했습니다.
+
+### 14.1. 현재 실행 중인 컨테이너 확인
+
+```powershell
+docker ps
+```
+
+`PORTS` 열에서 어떤 컨테이너가 어떤 호스트 포트를 사용하고 있는지 확인할 수 있습니다.
+
+### 14.2. Windows에서 포트 점유 확인
+
+예를 들어 8080번 포트를 확인할 때는 다음 명령어를 사용할 수 있습니다.
+
+```powershell
+netstat -ano | findstr :8080
+```
+
+출력된 PID를 이용해 해당 프로세스 정보를 확인할 수 있습니다.
+
+```powershell
+tasklist /FI "PID eq <확인한_PID>"
+```
+
+여기서 `<확인한_PID>`는 실제 `netstat` 결과에서 확인한 숫자로 바꿔 입력해야 합니다.
+
+### 14.3. 충돌 해결
+
+포트를 사용 중인 프로그램이나 컨테이너를 확인한 후 다음 방법 중 하나를 선택할 수 있습니다.
+
+1. 필요하지 않은 Docker 컨테이너라면 `docker stop 컨테이너이름`으로 정상 종료합니다.
+2. 기존 서비스를 유지해야 한다면 새 컨테이너의 호스트 포트를 변경합니다.
+3. 다시 실행한 후 `docker ps`로 포트 매핑을 확인합니다.
+4. 브라우저에서 변경한 포트로 접속하여 확인합니다.
+
+예를 들어 8080번 포트가 이미 사용 중이라면 다음과 같이 다른 포트를 사용할 수 있습니다.
+
+```powershell
+docker run -d --name zozo-web-8083 -p 8083:80 zozo-web:v1
+```
+
+위 명령어는 포트 충돌을 해결하는 **예시**이며, 실제 이번 실습에서 실행한 명령어는 아닙니다.
+
+특히 공용 PC에서는 어떤 프로세스인지 확인하지 않고 강제로 종료하면 다른 사용자의 작업에 영향을 줄 수 있으므로 주의해야 합니다.
+
+---
+
+## 15. Docker Volume 백업 및 복원 전략
+
+### 15.1. Volume이 필요한 이유
+
+이번 실습에서는 `zozo-data` 볼륨에 파일을 저장한 뒤 컨테이너를 삭제했습니다.
+
+이후 새로운 컨테이너에서 같은 볼륨을 연결했을 때 기존 파일이 유지되는 것을 확인했습니다.
+
+```powershell
+docker run --rm -v zozo-data:/data ubuntu cat /data/saved.txt
+```
+
+실제 출력:
+
+```text
+Zozo Docker volume persistence test
+```
+
+![Docker Volume 데이터 유지](evidence/docker_volume_persistence.png)
+
+### 15.2. 데이터 유지와 백업의 차이
+
+Volume에 저장된 데이터는 일반적인 컨테이너 삭제와 별도로 유지할 수 있습니다.
+
+하지만 **컨테이너 삭제 후 데이터가 유지되는 것과 백업이 존재하는 것은 다릅니다.**
+
+Volume 자체가 삭제되거나 데이터가 손상될 가능성에 대비하려면 별도의 백업 파일을 보관해야 합니다.
+
+### 15.3. Volume 백업 방법
+
+Docker Volume을 백업하는 한 가지 방법은 임시 컨테이너를 실행해 Volume 내용을 `tar` 압축 파일로 저장하는 것입니다.
+
+다음은 `zozo-data` 볼륨을 백업하는 예시입니다.
+
+```powershell
+docker run --rm -v zozo-data:/data:ro --mount "type=bind,source=C:\Users\Public\codyssey-test1\repo,target=/backup" ubuntu tar -czf /backup/zozo-data-backup.tar.gz -C /data .
+```
+
+이 명령어의 의미는 다음과 같습니다.
+
+- `zozo-data:/data:ro`: 기존 Volume을 읽기 전용으로 연결
+- `/backup`: Windows 프로젝트 폴더를 컨테이너에 연결
+- `tar -czf`: Volume 내용을 압축 파일로 생성
+- `-C /data .`: `/data` 폴더 안의 파일들을 백업
+
+백업 파일이 생성되었다면 원본 Volume과 분리된 저장 위치에 보관하는 것이 좋습니다.
+
+### 15.4. 복원 방법
+
+백업 파일을 새로운 볼륨에 복원하는 방법도 있습니다.
+
+먼저 복원용 볼륨을 생성합니다.
+
+```powershell
+docker volume create zozo-data-restored
+```
+
+그다음 압축 파일을 새 볼륨에 풀 수 있습니다.
+
+```powershell
+docker run --rm -v zozo-data-restored:/data --mount "type=bind,source=C:\Users\Public\codyssey-test1\repo,target=/backup" ubuntu tar -xzf /backup/zozo-data-backup.tar.gz -C /data
+```
+
+위 백업 및 복원 명령어는 **향후 활용할 수 있는 방법을 정리한 예시**입니다. 이번 과제에서 실제로 검증한 것은 Volume 생성과 컨테이너 삭제 후 데이터 유지까지입니다.
+
+실제 서비스 데이터를 백업할 때는 데이터의 일관성을 위해 쓰기 작업을 중단하거나 애플리케이션에 맞는 백업 방법을 적용할 필요가 있습니다.
+
+---
+
+## 16. Linux 접근 권한 이해하기
+
+Ubuntu 컨테이너에서는 파일과 디렉터리의 권한을 직접 변경했습니다.
+
+### 16.1. 권한의 기본 의미
+
+| 기호 | 의미 | 숫자 |
+|---|---|---:|
+| `r` | 읽기(Read) | 4 |
+| `w` | 쓰기(Write) | 2 |
+| `x` | 실행(Execute) | 1 |
+| `-` | 해당 권한 없음 | 0 |
+
+각 권한의 숫자를 합산하여 한 자리 숫자로 나타냅니다.
+
+예를 들어:
+
+- `7 = 4 + 2 + 1` → 읽기, 쓰기, 실행
+- `6 = 4 + 2` → 읽기, 쓰기
+- `5 = 4 + 1` → 읽기, 실행
+- `4` → 읽기만 허용
+
+Linux의 일반적인 권한 표기는 **소유자(User), 그룹(Group), 기타 사용자(Others)** 순서로 표시됩니다.
+
+### 16.2. 파일 권한 변경
+
+실제 실행한 명령어:
+
+```bash
+ls -l practice.txt
+chmod 744 practice.txt
+ls -l practice.txt
+```
+
+실제 확인 결과:
+
+```text
+변경 전: -rw-r--r-- (644)
+변경 후: -rwxr--r-- (744)
+```
+
+소유자에게 실행 권한이 추가된 것을 확인했습니다.
+
+### 16.3. 디렉터리 권한 변경
+
+```bash
+mkdir permission_dir
+ls -ld permission_dir
+chmod 700 permission_dir
+ls -ld permission_dir
+```
+
+실제 확인 결과:
+
+```text
+변경 전: drwxr-xr-x (755)
+변경 후: drwx------ (700)
+```
+
+변경 후에는 그룹 및 기타 사용자의 접근 권한이 제거되었습니다.
+
+![Linux 파일 및 디렉터리 권한 변경](evidence/linux_file_permission.png)
+
+권한의 숫자 표기와 문자 표기를 함께 비교하면서 `chmod` 명령어의 의미를 이해할 수 있었습니다.
+
+---
+
+## 17. Docker 실행 상태와 이미지·컨테이너 점검
+
+### 17.1. Docker 엔진 확인
+
+Docker 명령어가 설치되어 있는 것과 Docker 엔진이 실행 중인 것은 별개의 문제입니다.
+
+실습 초기에는 Docker Desktop이 실행되지 않아 엔진에 연결할 수 없었습니다. Docker Desktop을 실행한 뒤 `docker info`가 정상적으로 작동하는 것을 확인했습니다.
+
+확인 명령어:
+
+```powershell
+docker --version
+docker info
+```
+
+실제 Docker CLI 버전:
+
+```text
+Docker version 29.9.2, build a82e528
+```
+
+또한 NGINX 컨테이너 실행 로그에서 다음 정보를 확인했습니다.
+
+```text
+nginx/1.31.8
+OS: Linux 6.18.54.1-microsoft-standard-WSL2
+```
+
+위 내용은 NGINX 컨테이너 로그에 표시된 정보이며, Docker Engine 버전과는 구분해야 합니다.
+
+### 17.2. 이미지 목록 확인
+
+```powershell
+docker images
+```
+
+실습 중 Ubuntu, NGINX, hello-world 이미지가 존재하는 것을 확인했습니다.
+
+직접 생성한 웹 서버 이미지도 조회했습니다.
+
+```powershell
+docker images zozo-web
+```
+
+`zozo-web:v1` 이미지가 생성되었고, 이후 HTML을 수정하여 `zozo-web:v2` 이미지도 빌드했습니다.
+
+### 17.3. 컨테이너 목록 확인
+
+```powershell
+docker ps
+docker ps -a
+```
+
+- `docker ps`: 실행 중인 컨테이너 조회
+- `docker ps -a`: 종료된 컨테이너까지 포함해 조회
+
+실습 중에는 직접 만든 Ubuntu 및 NGINX 컨테이너의 실행 상태를 확인했습니다.
+
+특히 `zozo-web-8081` 컨테이너를 중지한 뒤 다음 명령어로 상태를 조회했습니다.
+
+```powershell
+docker inspect --format '{{.State.Status}}' zozo-web-8081
+```
+
+실제 출력:
+
+```text
+exited
+```
+
+### 17.4. 로그와 자원 사용량 확인
+
+```powershell
+docker logs zozo-ubuntu
+docker logs zozo-web-8080
+docker stats --no-stream zozo-ubuntu
+```
+
+NGINX의 웹페이지 요청 로그에서는 `200` 응답을 확인했고, `docker stats`에서는 컨테이너의 CPU 및 메모리 사용량을 확인했습니다.
+
+![Docker 자원 사용량](evidence/docker_stats.png)
+
+**추가 증거 보완 안내:** `docker info`, `docker images`, `docker ps -a`의 전체 출력 결과는 README에 아직 별도로 첨부하지 않았습니다. AI 사전평가에서는 해당 원본 출력이나 스크린샷을 추가하도록 요청했습니다.
+
+---
+
+## 18. Git 저장소 구조 및 실습 재현 방법
+
+### 18.1. 프로젝트 폴더 구조
+
+이번 과제에서 사용한 주요 파일 구조는 다음과 같습니다.
+
+```text
+codyssey-test1/
+└── repo/
+    ├── README.md
+    ├── bind-test/
+    │   └── message.txt
+    ├── evidence/
+    │   ├── docker_bind_mount.png
+    │   ├── docker_hello_world.png
+    │   ├── docker_stats.png
+    │   ├── docker_volume_persistence.png
+    │   ├── docker_web_8080.png
+    │   ├── docker_web_8081.png
+    │   ├── linux_file_permission.png
+    │   ├── troubleshooting_html_powershell.png
+    │   ├── troubleshooting_nginx_favicon_error.png
+    │   ├── troubleshooting_nginx_favicon_fixed.png
+    │   └── vscode_git_sync.png
+    ├── file-practice/
+    │   └── original.txt
+    └── my-web/
+        ├── Dockerfile
+        └── index.html
+```
+
+`.git` 폴더는 Git이 관리하는 숨김 폴더이며, GitHub 저장소의 일반 파일 목록에는 표시되지 않습니다.
+
+`README.backup.txt`는 원본을 보관하기 위해 로컬에 생성했지만 Git 제출 대상에서는 제외했습니다.
+
+### 18.2. 웹 서버 실습 재현 체크리스트
+
+다음 과정은 GitHub 저장소의 코드를 이용해 웹 서버를 다시 실행하기 위한 절차입니다.
+
+- [ ] Git과 Docker Desktop이 설치되어 있는지 확인합니다.
+- [ ] Docker Desktop을 실행하고 Docker 엔진이 정상적으로 작동하는지 확인합니다.
+- [ ] GitHub 저장소를 복제합니다.
+- [ ] 프로젝트 폴더로 이동합니다.
+- [ ] Docker 이미지를 빌드합니다.
+- [ ] 웹 서버 컨테이너를 실행합니다.
+- [ ] 브라우저에서 웹페이지에 접속합니다.
+- [ ] Docker 로그를 확인합니다.
+
+**저장소 복제**
+
+```powershell
+git clone https://github.com/zozo2026co/codyssey-test1.git
+cd codyssey-test1
+```
+
+**Docker 실행 상태 확인**
+
+```powershell
+docker info
+```
+
+**웹 서버 이미지 생성**
+
+```powershell
+docker build -t zozo-web:v1 .\my-web
+```
+
+**웹 서버 실행**
+
+```powershell
+docker run -d --name zozo-web-replay -p 8080:80 zozo-web:v1
+```
+
+**웹페이지 확인**
+
+브라우저에서 다음 주소로 접속합니다.
+
+`http://localhost:8080`
+
+**로그 확인**
+
+```powershell
+docker logs zozo-web-replay
+```
+
+**컨테이너 중지**
+
+```powershell
+docker stop zozo-web-replay
+```
+
+이미 같은 이름의 컨테이너가 있거나 8080번 포트가 사용 중이라면 충돌할 수 있으므로, 기존 상태를 먼저 확인해야 합니다.
+
+### 18.3. 경로와 재현성
+
+이번 Bind Mount 실습에서는 실제 PC 경로를 직접 지정했습니다.
+
+```text
+C:\Users\Public\codyssey-test1\repo\bind-test
+```
+
+하지만 이 경로는 다른 사람의 PC에서는 존재하지 않을 수 있습니다.
+
+일반적인 파일 작업에는 상대경로(`.\my-web` 등)를 사용하면 다른 위치에서도 동일한 프로젝트 구조를 활용하기 쉽습니다.
+
+Bind Mount처럼 절대경로가 필요한 경우에는 자신의 프로젝트 경로로 바꿔 입력하거나 PowerShell의 현재 경로 변수를 활용하는 방식이 좋습니다.
+
+---
+
+## 19. 추가 확인 사항 및 실습 정리
+
+### 19.1. 확인된 실습 결과
+
+이번 과제에서 실제로 확인한 내용은 다음과 같습니다.
+
+- Git 설치와 저장소 복제 및 GitHub Push
+- Docker Desktop 실행과 hello-world 성공
+- Ubuntu 컨테이너 생성 및 재접속
+- Linux 파일·디렉터리 권한 변경
+- Docker 이미지 제작과 NGINX 웹 서버 실행
+- 8080·8081·8082 포트를 이용한 웹 접속
+- Docker 컨테이너 로그와 자원 사용량 확인
+- Bind Mount로 파일 변경 사항 공유
+- Docker Volume의 데이터 유지 확인
+- PowerShell 파일 생성·복사·이동·이름 변경·삭제
+- 트러블슈팅 2건의 수정 과정 및 결과 확인
+- VS Code GitHub 계정 로그인 및 소스 제어 화면 확인
+- README 작성 및 GitHub 동기화
+
+### 19.2. 추가로 보완할 증거
+
+AI 사전평가에서 요구한 자료 중 다음 항목은 실제 출력이나 스크린샷을 추가로 확보하면 더 명확하게 검증할 수 있습니다.
+
+- [ ] `docker info` 실행 출력
+- [ ] `docker images` 실행 출력
+- [ ] `docker ps -a` 실행 출력
+- [ ] Docker 이미지 빌드 성공 로그
+- [ ] `docker volume ls` 실행 출력
+- [ ] `git remote -v` 실행 출력
+- [ ] HTTP 응답 확인 명령 실행 출력
+
+일부 명령어는 이미 실습했지만, README에는 실제 출력 원문이 충분히 남아 있지 않습니다. 따라서 추가 검증이 필요합니다.
+
+### 19.3. 실습을 마치며
+
+이번 과제에서는 개발 환경을 설치하는 것부터 Docker 컨테이너를 실행하고 GitHub에 결과물을 올리는 과정까지 직접 진행했습니다.
+
+익숙하지 않은 명령어가 많아 중간에 오류도 있었지만, 명령어를 실행한 후 결과를 확인하고 잘못된 부분을 수정하면서 실습을 이어갈 수 있었습니다.
+
+특히 Docker 이미지와 컨테이너의 차이, 파일 권한, 포트 연결, 데이터 저장 방식 등은 실제로 명령어를 실행해 보면서 조금 더 명확하게 이해할 수 있었습니다.
+
+앞으로도 새로운 도구를 사용할 때는 실행 결과를 확인하고, 오류가 발생하면 그 내용을 기록하면서 해결하는 방식으로 학습하려고 합니다.
+
+## 20. AI 사전평가 보완 — Docker 실행 증거
+
+AI 사전평가에서 Docker 엔진의 실행 정보와 이미지·컨테이너 목록에 대한 실제 출력 증거가 부족하다는 피드백을 받았습니다.
+
+이에 따라 관련 명령어를 다시 실행하고 결과를 스크린샷으로 저장했습니다.
+
+### 20.1. Docker 엔진 동작 확인
+
+```powershell
+docker info
+```
+
+Docker 엔진이 정상적으로 실행되고 있음을 확인했습니다.
+
+추가로 필요한 정보만 출력하도록 다음 명령어를 실행했습니다.
+
+```powershell
+docker info --format 'Server Version: {{.ServerVersion}} | Containers: {{.Containers}} | Images: {{.Images}} | Operating System: {{.OperatingSystem}}'
+```
+
+실제 출력 결과:
+
+```text
+Server Version: 29.9.2 | Containers: 7 | Images: 5 | Operating System: Docker Desktop
+```
+
+**실행 증거**
+
+![Docker 엔진 실행 정보](evidence/docker_info.png)
+
+![Docker 서버 버전 및 상태 확인](evidence/docker_info1.png)
+
+### 20.2. Docker 이미지 목록 확인
+
+```powershell
+docker images
+```
+
+실제 조회된 이미지:
+
+```text
+hello-world:latest
+nginx:alpine
+ubuntu:latest
+zozo-web:v1
+zozo-web:v2
+```
+
+총 5개의 이미지가 조회되었습니다.
+
+**실행 증거**
+
+![Docker 이미지 목록](evidence/docker_images.png)
+
+### 20.3. Docker 컨테이너 목록 확인
+
+```powershell
+docker ps -a
+```
+
+실제 확인 결과:
+
+| 컨테이너 | 상태 |
+|---|---|
+| zozo-web-8082 | 실행 중 |
+| zozo-web-8081 | 종료됨 |
+| zozo-web-8080 | 실행 중 |
+| zozo-ubuntu | 실행 중 |
+| vigorous_maxwell | 종료됨 |
+| my-ubuntu | 종료됨 |
+| dazzling_jackson | 종료됨 |
+
+총 7개의 컨테이너가 조회되었습니다.
+
+**실행 증거**
+
+![Docker 전체 컨테이너 목록](evidence/docker_ps_all.png)
+
+이번 보완을 통해 Docker 관련 명령어뿐 아니라 실제 실행 결과까지 README에 기록했습니다.
+
+## 21. GitHub 원격 저장소 연결 확인
+
+GitHub에 실습 자료를 업로드한 후, 로컬 Git 저장소가 올바른 원격 저장소에 연결되어 있는지 확인했습니다.
+
+```powershell
+git remote -v
+```
+
+실제 출력 결과:
+
+```text
+origin  https://github.com/zozo2026co/codyssey-test1.git (fetch)
+origin  https://github.com/zozo2026co/codyssey-test1.git (push)
+```
+
+`fetch`와 `push` 주소가 모두 과제용 GitHub 저장소를 가리키고 있음을 확인했습니다.
+
+또한 `git push` 실행 결과에서 `main -> main`이 표시되었으며, `git status -sb` 명령어로 로컬 브랜치와 원격 브랜치의 동기화 상태도 확인했습니다.
