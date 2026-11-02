@@ -1,0 +1,2 @@
+Hello from Windows host
+Modified inside Docker container
